@@ -35,6 +35,7 @@ export interface CatalogacionCompleta {
   autor?: string
   localizacion_actual?: string
   published_at?: string
+  approved_at?: string
 }
 
 export async function guardarConversacion(
@@ -180,55 +181,56 @@ export async function subirImagen(
 }
 
 export async function guardarCatalogacion(
-  catalogacion: CatalogacionCompleta,
-  imagenFile?: File
-): Promise<string | null> {
-  if (!supabase) {
-    console.warn('⚠️ Supabase no está configurado')
-    return null
-  }
-
+  userId: string,
+  catalogo: CatalogacionCompleta,
+  imagenFile: File | null
+): Promise<{ id: string } | { error: string } | null> {
   try {
-    console.log('💾 Guardando catalogación completa...')
 
+  // Bloquear si no hay imagen
+  if (!imagenFile) {
+    return { error: 'No se puede aprobar sin fotografía adjunta.' }
+  }
+    // Obtener imagen si se proporcionó
     let imageUrl = ''
     let imagePath = ''
 
     if (imagenFile) {
-      const resultado = await subirImagen(imagenFile, catalogacion.user_id)
-      if (resultado) {
-        imageUrl = resultado.url
-        imagePath = resultado.path
+      const resultadoImagen = await subirImagen(imagenFile, userId)
+      if (!resultadoImagen) {
+        return { error: 'No se pudo subir la fotografía. Inténtalo de nuevo.' }
       }
+      imageUrl = resultadoImagen.url
+      imagePath = resultadoImagen.path
+
+    }
+
+    const jsonRespuesta = {
+      ...catalogo,
+      image_url: imageUrl,
+      image_path: imagePath,
+      published_at: new Date().toISOString(),
+      approved_at: new Date().toISOString()
     }
 
     const { data, error } = await supabase
       .from('conversaciones')
       .insert([
         {
-          user_id: catalogacion.user_id,
-          mensaje: `Catalogación: ${catalogacion.tipo_objeto}`,
-          respuesta: JSON.stringify({
-            ...catalogacion,
-            image_url: imageUrl,
-            image_path: imagePath,
-            published_at: new Date().toISOString()
-          }),
-          fecha: new Date().toISOString()
+          user_id: userId,
+          fecha: new Date().toISOString(),
+          pregunta: 'Aprobación de catalogación',
+          respuesta: JSON.stringify(jsonRespuesta)
         }
       ])
       .select()
 
-    if (error) {
-      console.error('❌ Error al guardar catalogación:', error)
-      return null
-    }
+    if (error) throw error
 
-    console.log('✅ Catalogación guardada correctamente con imagen')
-    return data?.[0]?.id || null
-  } catch (error: unknown) {
-    console.error('❌ Error inesperado al guardar catalogación:', error)
-    return null
+    return data && data.length > 0 ? { id: data[0].id } : null
+  } catch (e: any) {
+    console.error('Error en guardarCatalogacion:', e?.message || e)
+    return { error: e?.message || 'Error desconocido al guardar catalogación' }
   }
 }
 
@@ -326,7 +328,8 @@ export async function obtenerCatalogo(userId?: string): Promise<CatalogoItem[]> 
     for (const row of data || []) {
       try {
         const parsed = JSON.parse(row.respuesta)
-        if (parsed && typeof parsed === 'object' && parsed.tipo_objeto && parsed.published_at) {
+        const hasImage = parsed && typeof parsed.image_url === 'string' && parsed.image_url.trim() !== ''
+        if (parsed && typeof parsed === 'object' && parsed.tipo_objeto && parsed.approved_at && hasImage) {
           items.push({ id: row.id, user_id: row.user_id, fecha: row.fecha, data: parsed })
         }
       } catch {}
@@ -357,7 +360,8 @@ export async function obtenerCatalogoItem(id: string): Promise<CatalogoItem | nu
     if (!row) return null
     try {
       const parsed = JSON.parse(row.respuesta)
-      if (parsed && typeof parsed === 'object' && parsed.tipo_objeto && parsed.published_at) {
+      const hasImage = parsed && typeof parsed.image_url === 'string' && parsed.image_url.trim() !== ''
+      if (parsed && typeof parsed === 'object' && parsed.tipo_objeto && parsed.approved_at && hasImage) {
         return { id: row.id, user_id: row.user_id, fecha: row.fecha, data: parsed }
       }
     } catch {}

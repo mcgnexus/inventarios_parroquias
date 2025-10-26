@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { enviarMensajeDify, enviarImagenDifyConInputArchivo, prepararImagen } from '@/lib/dify'
-import { guardarConversacion, guardarCatalogacion } from '@/lib/supabase'
+import { guardarConversacion, guardarCatalogacion, CatalogacionCompleta } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser, onAuthStateChange } from '@/lib/auth'
 import Link from 'next/link'
@@ -440,7 +440,8 @@ const FichaInventario = React.memo(function FichaInventario({
               
               <button
                 onClick={() => aprobarCatalogacion(cat, mensajeId)}
-                disabled={guardando}
+                disabled={guardando || !imagenOriginal}
+                title={!imagenOriginal ? 'Adjunta una fotografía para aprobar' : undefined}
                 className="p-1.5 bg-emerald-100 text-emerald-800 rounded hover:bg-emerald-200 flex items-center gap-1 disabled:opacity-50"
               >
                 {guardando ? (
@@ -847,33 +848,34 @@ export default function ChatInterface() {
   const aprobarCatalogacion = async (cat: CatalogacionIA, mensajeId?: string) => {
     setGuardando(true)
     try {
-      const mensajeConImagen = conversacion.find(m => 
-        m.mensajeId === mensajeId || m.mensajeId === mensajeId?.replace('ia-', '')
-      )
-      const userId = 'usuario-huescar-catalogacion'
-      const resultado = await guardarCatalogacion(
-        { user_id: userId, ...cat },
-        mensajeConImagen?.imagenOriginal
-      )
+      const user = await getCurrentUser()
+      if (!user) {
+        setGuardando(false)
+        setConversacion(prev => [...prev, { tipo: 'sistema', texto: 'Debes iniciar sesión para aprobar la ficha.', timestamp: new Date() }])
+        return
+      }
 
-      if (resultado) {
-        const mensajeExito: Mensaje = {
-          tipo: 'sistema',
-          texto: 'Catalogación guardada correctamente en la base de datos.',
-          timestamp: new Date()
-        }
-        setConversacion(prev => [...prev, mensajeExito])
+      // Buscar el mensaje relacionado (usuario o IA) que contenga la imagen original
+      const mensajeConImagen = conversacion.find(m => (
+        m.mensajeId === mensajeId || m.mensajeId === mensajeId?.replace('ia-', '')
+      ))
+      if (!mensajeConImagen?.imagenOriginal) {
+        setGuardando(false)
+        setConversacion(prev => [...prev, { tipo: 'sistema', texto: 'Debes adjuntar una fotografía para aprobar la ficha.', timestamp: new Date() }])
+        return
+      }
+
+      const catalogoCompleto: CatalogacionCompleta = { user_id: user.id, ...cat }
+      const res = await guardarCatalogacion(user.id, catalogoCompleto, mensajeConImagen.imagenOriginal)
+      if (!res) {
+        setConversacion(prev => [...prev, { tipo: 'sistema', texto: 'Error al aprobar: respuesta vacía del servidor.', timestamp: new Date() }])
+      } else if ('error' in res) {
+        setConversacion(prev => [...prev, { tipo: 'sistema', texto: `Error al aprobar: ${res.error}`, timestamp: new Date() }])
       } else {
-        throw new Error('No se pudo guardar')
+        setConversacion(prev => [...prev, { tipo: 'sistema', texto: 'Ficha aprobada correctamente.', timestamp: new Date() }])
       }
-    } catch (error: unknown) {
-      console.error('Error al guardar:', error)
-      const mensajeError: Mensaje = {
-        tipo: 'sistema',
-        texto: 'Error al guardar la catalogación. Por favor, intente nuevamente.',
-        timestamp: new Date()
-      }
-      setConversacion(prev => [...prev, mensajeError])
+    } catch (e: any) {
+      setConversacion(prev => [...prev, { tipo: 'sistema', texto: `Error inesperado al aprobar: ${e?.message || e}`, timestamp: new Date() }])
     } finally {
       setGuardando(false)
     }
