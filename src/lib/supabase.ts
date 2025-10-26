@@ -211,7 +211,8 @@ export async function guardarCatalogacion(
           respuesta: JSON.stringify({
             ...catalogacion,
             image_url: imageUrl,
-            image_path: imagePath
+            image_path: imagePath,
+            published_at: new Date().toISOString()
           }),
           fecha: new Date().toISOString()
         }
@@ -325,7 +326,7 @@ export async function obtenerCatalogo(userId?: string): Promise<CatalogoItem[]> 
     for (const row of data || []) {
       try {
         const parsed = JSON.parse(row.respuesta)
-        if (parsed && typeof parsed === 'object' && parsed.tipo_objeto) {
+        if (parsed && typeof parsed === 'object' && parsed.tipo_objeto && parsed.published_at) {
           items.push({ id: row.id, user_id: row.user_id, fecha: row.fecha, data: parsed })
         }
       } catch {}
@@ -356,7 +357,7 @@ export async function obtenerCatalogoItem(id: string): Promise<CatalogoItem | nu
     if (!row) return null
     try {
       const parsed = JSON.parse(row.respuesta)
-      if (parsed && typeof parsed === 'object' && parsed.tipo_objeto) {
+      if (parsed && typeof parsed === 'object' && parsed.tipo_objeto && parsed.published_at) {
         return { id: row.id, user_id: row.user_id, fecha: row.fecha, data: parsed }
       }
     } catch {}
