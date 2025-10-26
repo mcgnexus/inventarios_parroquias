@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { obtenerCatalogo } from '@/lib/supabase'
 import FullscreenImage from '@/components/FullscreenImage'
 
@@ -143,7 +144,7 @@ export default async function CatalogoPage({ searchParams }: { searchParams: Pro
                 </div>
               </Link>
               <Link href={`/catalogo/${it.id}${queryString}`} target="_blank" rel="noopener noreferrer" className="absolute top-2 right-2 bg-white/90 border border-slate-200 rounded p-1 shadow-sm opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                <img src="/window.svg" alt="Abrir en nueva pestaña" className="w-4 h-4" />
+                <Image src="/window.svg" alt="Abrir en nueva pestaña" width={16} height={16} />
               </Link>
             </div>
           ))}

@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     let current: Record<string, unknown> = {}
     try {
       current = JSON.parse(row.respuesta || '{}') as Record<string, unknown>
-    } catch (e) {
+    } catch {
       console.warn('respuesta no JSON, se sobrescribe')
       current = {}
     }

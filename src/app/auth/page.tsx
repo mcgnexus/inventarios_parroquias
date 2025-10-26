@@ -4,6 +4,7 @@ import { getCurrentUser, signOut, onAuthStateChange, signUpWithProfile, getSupab
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
 import type { PostgrestError } from '@supabase/supabase-js'
+import type { AuthResponse } from '@supabase/supabase-js'
 
 type ParishOption = { id: string; name: string }
 export default function AuthPage() {
@@ -137,9 +138,7 @@ function AuthPageContent() {
               void supabase.auth.setSession({
                 access_token: result.session.access_token,
                 refresh_token: result.session.refresh_token,
-              }).then((res: any) => {
-                const setData = res.data;
-                const setError = res.error;
+              }).then(({ data: setData, error: setError }: AuthResponse) => {
                 console.log('[Auth] setSession resultado:', { setData, setError });
                 if (setError) {
                   console.warn('[Auth] setSession error:', setError.message);

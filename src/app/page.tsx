@@ -14,7 +14,7 @@ export default function Home() {
       const u = await getCurrentUser()
       setUserEmail(u?.email ?? null)
     })()
-    unsub = onAuthStateChange((_event, _session) => {
+    unsub = onAuthStateChange(() => {
       getCurrentUser().then(u => {
         setUserEmail(u?.email ?? null)
       })

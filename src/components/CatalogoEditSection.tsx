@@ -10,10 +10,6 @@ interface Props {
 export default function CatalogoEditSection({ id, initialData }: Props) {
   const [editing, setEditing] = useState(false)
 
-  const handleToggleEdit = () => {
-    setEditing(!editing)
-  }
-
   const handleSaveSuccess = () => {
     setEditing(false)
   }
