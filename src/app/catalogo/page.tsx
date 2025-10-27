@@ -1,17 +1,20 @@
 import Link from 'next/link'
+import { Suspense } from 'react'
 import Image from 'next/image'
 import { obtenerCatalogo } from '@/lib/supabase'
+import CatalogoUserFilter from '@/components/CatalogoUserFilter'
 import FullscreenImage from '@/components/FullscreenImage'
 
 export const dynamic = 'force-dynamic'
 
-type SearchParams = { tipo?: string; categoria?: string; q?: string; parroquia?: string }
+type SearchParams = { tipo?: string; categoria?: string; q?: string; parroquia?: string; user?: string }
 
 export default async function CatalogoPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const userId = 'usuario-huescar-catalogacion'
-  const items = await obtenerCatalogo(userId)
-
   const sp = await searchParams
+  const userParam = (sp?.user || '').trim()
+  // Mostrar catálogo: si viene user en la URL, filtrar por ese usuario; si no, público
+  const items = await obtenerCatalogo(userParam || undefined)
+
   const tipo = (sp?.tipo || '').trim()
   const categoria = (sp?.categoria || '').trim().toLowerCase()
   const q = (sp?.q || '').trim().toLowerCase()
@@ -21,6 +24,7 @@ export default async function CatalogoPage({ searchParams }: { searchParams: Pro
   if (categoria) qsParts.push(`categoria=${encodeURIComponent(categoria)}`)
   if (q) qsParts.push(`q=${encodeURIComponent(q)}`)
   if (parroquia) qsParts.push(`parroquia=${encodeURIComponent(parroquia)}`)
+  if (userParam) qsParts.push(`user=${encodeURIComponent(userParam)}`)
   const queryString = qsParts.length ? `?${qsParts.join('&')}` : ''
 
   const tipos = Array.from(new Set(items.map(i => i.data.tipo_objeto).filter(Boolean))).sort()
@@ -62,17 +66,32 @@ export default async function CatalogoPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="flex items-center gap-3 mb-4">
+        <img src="/escudo-guadix.jpg" alt="Escudo Guadix" className="h-12 w-auto logo-escudo" />
+        <div className="text-sm text-slate-600">Diócesis de Guadix — Catálogo</div>
+      </div>
       <div className="flex items-baseline justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Catálogo</h1>
           {parishHeader && (
             <p className="text-sm text-slate-600">Parroquia: {parishHeader}</p>
           )}
+          {userParam && (
+            <p className="text-xs mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">Filtrando: Mis piezas</p>
+          )}
         </div>
-        <Link href="/" className="text-sm text-slate-600 hover:text-slate-800">Volver</Link>
+        <div className="flex items-center gap-3">
+          <Suspense fallback={null}>
+            <CatalogoUserFilter />
+          </Suspense>
+          <Link href="/" className="text-sm text-slate-600 hover:text-slate-800">Volver</Link>
+        </div>
       </div>
 
       <form method="GET" className="mb-6 bg-white border border-slate-200 rounded-lg p-4 flex flex-wrap gap-4 items-end">
+        {userParam && (
+          <input type="hidden" name="user" value={userParam} />
+        )}
         <div>
           <label className="block text-xs font-semibold text-slate-600 mb-1">Tipo</label>
           <select name="tipo" defaultValue={tipo} className="text-sm border border-slate-300 rounded px-2 py-1 bg-white">

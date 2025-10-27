@@ -1,0 +1,372 @@
+{
+  "dryRun": false,
+  "migrated_count": 0,
+  "skipped_count": 52,
+  "issues": [
+    {
+      "id": 98,
+      "reason": "parish_id no resolvible",
+      "parish_name": null,
+      "status": "approved",
+      "has_image": true
+    },
+    {
+      "id": 97,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 96,
+      "reason": "no cumple regla de visibilidad (aprobado requiere imagen)",
+      "parish_name": null,
+      "status": "draft",
+      "has_image": false
+    },
+    {
+      "id": 95,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 94,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 93,
+      "reason": "parish_id no resolvible",
+      "parish_name": "Santa María La Mayor",
+      "status": "published",
+      "has_image": true
+    },
+    {
+      "id": 92,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 91,
+      "reason": "parish_id no resolvible",
+      "parish_name": "Santa María La Mayor",
+      "status": "published",
+      "has_image": true
+    },
+    {
+      "id": 90,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 89,
+      "reason": "no cumple regla de visibilidad (aprobado requiere imagen)",
+      "parish_name": null,
+      "status": "draft",
+      "has_image": true
+    },
+    {
+      "id": 87,
+      "reason": "no cumple regla de visibilidad (aprobado requiere imagen)",
+      "parish_name": null,
+      "status": "draft",
+      "has_image": true
+    },
+    {
+      "id": 85,
+      "reason": "no cumple regla de visibilidad (aprobado requiere imagen)",
+      "parish_name": null,
+      "status": "draft",
+      "has_image": true
+    },
+    {
+      "id": 82,
+      "reason": "no cumple regla de visibilidad (aprobado requiere imagen)",
+      "parish_name": null,
+      "status": "draft",
+      "has_image": true
+    },
+    {
+      "id": 80,
+      "reason": "no cumple regla de visibilidad (aprobado requiere imagen)",
+      "parish_name": null,
+      "status": "draft",
+      "has_image": true
+    },
+    {
+      "id": 78,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 76,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 75,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 74,
+      "reason": "parish_id no resolvible",
+      "parish_name": "Santa María La Mayor",
+      "status": "published",
+      "has_image": true
+    },
+    {
+      "id": 73,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 72,
+      "reason": "parish_id no resolvible",
+      "parish_name": "Santa María La Mayor",
+      "status": "published",
+      "has_image": true
+    },
+    {
+      "id": 71,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 70,
+      "reason": "no cumple regla de visibilidad (aprobado requiere imagen)",
+      "parish_name": null,
+      "status": "draft",
+      "has_image": true
+    },
+    {
+      "id": 69,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 68,
+      "reason": "parish_id no resolvible",
+      "parish_name": "Santa María La Mayor",
+      "status": "published",
+      "has_image": true
+    },
+    {
+      "id": 67,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 66,
+      "reason": "no cumple regla de visibilidad (aprobado requiere imagen)",
+      "parish_name": null,
+      "status": "draft",
+      "has_image": true
+    },
+    {
+      "id": 65,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 64,
+      "reason": "parish_id no resolvible",
+      "parish_name": "Santa María La Mayor",
+      "status": "published",
+      "has_image": true
+    },
+    {
+      "id": 63,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 62,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 61,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 60,
+      "reason": "parish_id no resolvible",
+      "parish_name": "Santa María La Mayor",
+      "status": "published",
+      "has_image": true
+    },
+    {
+      "id": 59,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 58,
+      "reason": "parish_id no resolvible",
+      "parish_name": "Santa María La Mayor",
+      "status": "published",
+      "has_image": true
+    },
+    {
+      "id": 57,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 56,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 55,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 53,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 52,
+      "reason": "parish_id no resolvible",
+      "parish_name": "Santa María La Mayor",
+      "status": "published",
+      "has_image": true
+    },
+    {
+      "id": 51,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 50,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 49,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 48,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 47,
+      "reason": "no cumple regla de visibilidad (aprobado requiere imagen)",
+      "parish_name": "Santa María La Mayor",
+      "status": "draft",
+      "has_image": true
+    },
+    {
+      "id": 46,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 45,
+      "reason": "parish_id no resolvible",
+      "parish_name": "Santa María La Mayor",
+      "status": "published",
+      "has_image": true
+    },
+    {
+      "id": 44,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 43,
+      "reason": "parish_id no resolvible",
+      "parish_name": "Santa María La Mayor",
+      "status": "published",
+      "has_image": true
+    },
+    {
+      "id": 42,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 41,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    },
+    {
+      "id": 40,
+      "reason": "no cumple regla de visibilidad (aprobado requiere imagen)",
+      "parish_name": null,
+      "status": "draft",
+      "has_image": true
+    },
+    {
+      "id": 39,
+      "reason": "respuesta no parseable",
+      "parish_name": null,
+      "status": null,
+      "has_image": null
+    }
+  ],
+  "generated_at": "2025-10-27T09:54:06.664Z"
+}

@@ -262,11 +262,12 @@ export default function ChatInterface() {
       
       // Guardar catalogación CON imagen
       const resultado = await guardarCatalogacion(
+        userId,
         {
           user_id: userId,
           ...cat
         },
-        mensajeConImagen?.imagenOriginal // Pasar la imagen original
+        mensajeConImagen?.imagenOriginal ?? null // Pasar la imagen original
       )
 
       if (resultado) {

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { obtenerCatalogoItem, obtenerParroquiaNombre, obtenerCatalogo } from '@/lib/supabase'
 import FullscreenImage from '@/components/FullscreenImage'
@@ -7,18 +8,19 @@ import AuthEditControls from '@/components/AuthEditControls'
 
 export const dynamic = 'force-dynamic'
 
-export default async function CatalogoDetallePage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ tipo?: string; categoria?: string; q?: string }> }) {
+export default async function CatalogoDetallePage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ tipo?: string; categoria?: string; q?: string; user?: string }> }) {
   const { id } = await params
   const sp = await searchParams
   const tipo = (sp?.tipo || '').trim()
   const categoria = (sp?.categoria || '').trim().toLowerCase()
   const q = (sp?.q || '').trim().toLowerCase()
+  const userParam = (sp?.user || '').trim()
   if (!id) notFound()
   const item = await obtenerCatalogoItem(id)
   if (!item) notFound()
   
   // Obtener todos los items para la navegación (mismo usuario del item)
-  const allItems = await obtenerCatalogo(item.user_id)
+  const allItems = await obtenerCatalogo(userParam || item.user_id)
   const filtrados = allItems.filter(it => {
     const tipoMatch = !tipo || it.data.tipo_objeto === tipo
     const categoriaMatch = !categoria || (it.data.categoria || '').toLowerCase() === categoria
@@ -40,6 +42,7 @@ const nextItem = currentIndexFiltered >= 0 && currentIndexFiltered < filtrados.l
   if (tipo) qsParts.push(`tipo=${encodeURIComponent(tipo)}`)
   if (categoria) qsParts.push(`categoria=${encodeURIComponent(categoria)}`)
   if (q) qsParts.push(`q=${encodeURIComponent(q)}`)
+  if (userParam) qsParts.push(`user=${encodeURIComponent(userParam)}`)
   const queryString = qsParts.length ? `?${qsParts.join('&')}` : ''
   const d = item.data
   const isUuid = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str)
@@ -85,12 +88,12 @@ const nextItem = currentIndexFiltered >= 0 && currentIndexFiltered < filtrados.l
                Siguiente →
              </span>
            )}
-           <ExportPDFButton />
+          <ExportPDFButton data={d} />
            {/* Botón de editar movido fuera del header */}
            <Link href={`/catalogo${queryString}#item-${id}`} className="text-sm text-slate-600 hover:text-slate-800 no-print">Volver al catálogo</Link>
          </div>
        </div>
-       {(tipo || categoria || q) && (
+       {(tipo || categoria || q || userParam) && (
          <div className="mb-4 no-print flex flex-wrap items-center gap-2">
            {tipo && (
              <span className="inline-flex items-center rounded-full border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700">
@@ -107,6 +110,11 @@ const nextItem = currentIndexFiltered >= 0 && currentIndexFiltered < filtrados.l
                Buscar: {q}
              </span>
            )}
+           {userParam && (
+             <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-1 text-xs text-amber-700">
+               Mis piezas
+             </span>
+           )}
            <Link
               href={`/catalogo/${targetIdOnClear}`}
               className="ml-2 inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-1 text-xs text-amber-700 hover:bg-amber-100"
@@ -118,6 +126,10 @@ const nextItem = currentIndexFiltered >= 0 && currentIndexFiltered < filtrados.l
        )}
 
       <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 mb-6 print-card">
+        <div className="flex items-center gap-3 mb-4">
+          <img src="/escudo-guadix.jpg" alt="Escudo Guadix" className="h-12 w-auto logo-escudo" />
+          <div className="text-sm text-slate-600">Diócesis de Guadix — Inventario</div>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div>
             <div className="text-xs font-semibold text-slate-600">Nombre</div>

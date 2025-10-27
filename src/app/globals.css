@@ -286,6 +286,12 @@ textarea:focus-visible {
     min-height: 160px !important;
   }
 
+  /* Logo del escudo en impresión */
+  .logo-escudo {
+    height: 20mm !important;
+    width: auto !important;
+  }
+
   /* Tipografía y espacios generales más compactos */
   .print-card .text-sm {
     font-size: 12px !important;
@@ -323,6 +329,12 @@ textarea:focus-visible {
 body {
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
+}
+
+/* Logo en pantalla */
+.logo-escudo {
+  height: 48px;
+  width: auto;
 }
 
 .print-break-before {

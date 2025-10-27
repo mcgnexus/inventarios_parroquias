@@ -36,6 +36,7 @@ export interface CatalogacionCompleta {
   localizacion_actual?: string
   published_at?: string
   approved_at?: string
+  status?: string
 }
 
 export async function guardarConversacion(
@@ -186,14 +187,9 @@ export async function guardarCatalogacion(
   imagenFile: File | null
 ): Promise<{ id: string } | { error: string } | null> {
   try {
-
-  // Bloquear si no hay imagen
-  if (!imagenFile) {
-    return { error: 'No se puede aprobar sin fotografía adjunta.' }
-  }
-    // Obtener imagen si se proporcionó
-    let imageUrl = ''
-    let imagePath = ''
+    // Determinar imagen a asociar: reutilizar si ya viene en el catálogo, o subir si se proporciona archivo
+    let imageUrl = catalogo.image_url || ''
+    let imagePath = catalogo.image_path || ''
 
     if (imagenFile) {
       const resultadoImagen = await subirImagen(imagenFile, userId)
@@ -202,7 +198,10 @@ export async function guardarCatalogacion(
       }
       imageUrl = resultadoImagen.url
       imagePath = resultadoImagen.path
+    }
 
+    if (!imageUrl || !imagePath) {
+      return { error: 'No se puede aprobar sin fotografía adjunta.' }
     }
 
     const jsonRespuesta = {
@@ -210,7 +209,8 @@ export async function guardarCatalogacion(
       image_url: imageUrl,
       image_path: imagePath,
       published_at: new Date().toISOString(),
-      approved_at: new Date().toISOString()
+      approved_at: new Date().toISOString(),
+      status: 'approved'
     }
 
     const { data, error } = await supabase
@@ -219,7 +219,7 @@ export async function guardarCatalogacion(
         {
           user_id: userId,
           fecha: new Date().toISOString(),
-          pregunta: 'Aprobación de catalogación',
+          mensaje: 'Aprobación de catalogación',
           respuesta: JSON.stringify(jsonRespuesta)
         }
       ])
@@ -311,6 +311,14 @@ export async function obtenerCatalogo(userId?: string): Promise<CatalogoItem[]> 
   }
 
   try {
+    // 1) Intentar obtener desde tabla items (si existe el esquema ampliado)
+    const fromItems = await obtenerCatalogoDesdeItems(userId)
+    // Si items existe pero está vacío, hacer fallback a conversaciones para no dejar catálogo vacío
+    if (fromItems && Array.isArray(fromItems) && fromItems.length > 0) {
+      return fromItems
+    }
+
+    // 2) Fallback a conversaciones
     let query = supabase
       .from('conversaciones')
       .select('*')
@@ -325,11 +333,14 @@ export async function obtenerCatalogo(userId?: string): Promise<CatalogoItem[]> 
     }
 
     const items: CatalogoItem[] = []
-    for (const row of data || []) {
+    for (const row of (data || [])) {
       try {
         const parsed = JSON.parse(row.respuesta)
         const hasImage = parsed && typeof parsed.image_url === 'string' && parsed.image_url.trim() !== ''
-        if (parsed && typeof parsed === 'object' && parsed.tipo_objeto && parsed.approved_at && hasImage) {
+        const isApproved = Boolean((parsed && parsed.approved_at) || (parsed && parsed.status === 'approved'))
+        const isPublished = Boolean((parsed && parsed.published_at) || (parsed && parsed.status === 'published'))
+        const passesRule = (isApproved && hasImage) || (isPublished)
+        if (parsed && typeof parsed === 'object' && parsed.tipo_objeto && passesRule) {
           items.push({ id: row.id, user_id: row.user_id, fecha: row.fecha, data: parsed })
         }
       } catch {}
@@ -347,6 +358,11 @@ export async function obtenerCatalogoItem(id: string): Promise<CatalogoItem | nu
     return null
   }
   try {
+    // 1) Intentar desde items primero
+    const fromItems = await obtenerCatalogoItemDesdeItems(id)
+    if (fromItems) return fromItems
+
+    // 2) Fallback a conversaciones
     const { data, error } = await supabase
       .from('conversaciones')
       .select('*')
@@ -361,13 +377,98 @@ export async function obtenerCatalogoItem(id: string): Promise<CatalogoItem | nu
     try {
       const parsed = JSON.parse(row.respuesta)
       const hasImage = parsed && typeof parsed.image_url === 'string' && parsed.image_url.trim() !== ''
-      if (parsed && typeof parsed === 'object' && parsed.tipo_objeto && parsed.approved_at && hasImage) {
+      const isApproved = Boolean((parsed && parsed.approved_at) || (parsed && parsed.status === 'approved'))
+      const isPublished = Boolean((parsed && parsed.published_at) || (parsed && parsed.status === 'published'))
+      const passesRule = (isApproved && hasImage) || (isPublished)
+      if (parsed && typeof parsed === 'object' && parsed.tipo_objeto && passesRule) {
         return { id: row.id, user_id: row.user_id, fecha: row.fecha, data: parsed }
       }
     } catch {}
     return null
   } catch (error) {
     console.error('❌ Error inesperado al obtener item:', error)
+    return null
+  }
+}
+
+// ==========================
+// Lectura desde tabla items
+// ==========================
+
+async function obtenerCatalogoDesdeItems(userId?: string): Promise<CatalogoItem[] | null> {
+  try {
+    let query = supabase
+      .from('items')
+      .select('id,user_id,parish_id,inventory_number,status,image_url,data,published_at,approved_at,created_at')
+      .order('created_at', { ascending: false })
+
+    if (userId) query = query.eq('user_id', userId)
+
+    const { data, error } = await query as unknown as { data: any[] | null, error: any }
+    if (error) {
+      // Si la tabla o columnas no existen aún, retornar null para fallback
+      console.warn('⚠️ No se pudo leer items (usando fallback a conversaciones):', error?.message || error)
+      return null
+    }
+
+    const items: CatalogoItem[] = []
+    for (const row of (data || [])) {
+      const parsed = (row as any).data || {}
+      const hasImage = typeof row.image_url === 'string' && row.image_url.trim() !== ''
+      const isApproved = Boolean(row.approved_at || row.status === 'approved')
+      const isPublished = Boolean(row.published_at || row.status === 'published')
+      const passesRule = (isApproved && hasImage) || (isPublished)
+      if (passesRule && (parsed?.tipo_objeto || parsed?.name)) {
+        const merged: CatalogacionCompleta = {
+          ...parsed,
+          parish_id: parsed.parish_id ?? row.parish_id,
+          image_url: parsed.image_url ?? row.image_url,
+          inventory_number: parsed.inventory_number ?? row.inventory_number,
+          published_at: parsed.published_at ?? row.published_at,
+          approved_at: parsed.approved_at ?? row.approved_at,
+          status: parsed.status ?? row.status,
+        }
+        items.push({ id: row.id, user_id: row.user_id, fecha: row.created_at, data: merged })
+      }
+    }
+    return items
+  } catch (e: any) {
+    console.warn('⚠️ Error inesperado leyendo items (fallback a conversaciones):', e?.message || e)
+    return null
+  }
+}
+
+async function obtenerCatalogoItemDesdeItems(id: string): Promise<CatalogoItem | null> {
+  try {
+    const { data, error } = await supabase
+      .from('items')
+      .select('id,user_id,parish_id,inventory_number,status,image_url,data,published_at,approved_at,created_at')
+      .eq('id', id)
+      .limit(1) as unknown as { data: any[] | null, error: any }
+    if (error) {
+      console.warn('⚠️ No se pudo leer item desde items (fallback a conversaciones):', error?.message || error)
+      return null
+    }
+    const row = data?.[0]
+    if (!row) return null
+    const parsed = (row as any).data || {}
+    const hasImage = typeof row.image_url === 'string' && row.image_url.trim() !== ''
+    const isApproved = Boolean(row.approved_at || row.status === 'approved')
+    const isPublished = Boolean(row.published_at || row.status === 'published')
+    const passesRule = (isApproved && hasImage) || (isPublished)
+    if (!passesRule) return null
+    const merged: CatalogacionCompleta = {
+      ...parsed,
+      parish_id: parsed.parish_id ?? row.parish_id,
+      image_url: parsed.image_url ?? row.image_url,
+      inventory_number: parsed.inventory_number ?? row.inventory_number,
+      published_at: parsed.published_at ?? row.published_at,
+      approved_at: parsed.approved_at ?? row.approved_at,
+      status: parsed.status ?? row.status,
+    }
+    return { id: row.id, user_id: row.user_id, fecha: row.created_at, data: merged }
+  } catch (e: any) {
+    console.warn('⚠️ Error inesperado leyendo item desde items (fallback a conversaciones):', e?.message || e)
     return null
   }
 }

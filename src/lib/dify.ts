@@ -9,12 +9,13 @@ const DIFY_API_KEY = process.env.NEXT_PUBLIC_DIFY_API_KEY || ''
 // Tamaño máximo de imagen: 10MB
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB en bytes
 
-interface RespuestaDify {
+export interface RespuestaDify {
   exito: boolean
   respuesta?: string
   conversationId?: string
   error?: string
   authWarning?: boolean
+  supabaseImage?: { url: string; path: string } | null
 }
 
 /**
@@ -184,9 +185,10 @@ export async function enviarImagenDifyConInputArchivo(
     }
 
     // 2. Comprobar la subida a Supabase (es SECUNDARIA)
+    let supabaseImage: { url: string; path: string } | null = null
     if (supabaseUploadResult.status === 'fulfilled' && supabaseUploadResult.value?.url) {
       console.log(`[${traceId}] ✅ Subida a Supabase OK. URL: ${supabaseUploadResult.value.url}`);
-      // Aquí podrías guardar la URL de Supabase en tu BBDD si quisieras
+      supabaseImage = { url: supabaseUploadResult.value.url, path: supabaseUploadResult.value.path }
     } else {
       // Si Supabase falla, solo lo advertimos, pero continuamos
       console.warn(`[${traceId}] ⚠️ Falló la subida a Supabase. (Continuamos...)`);
@@ -235,7 +237,8 @@ export async function enviarImagenDifyConInputArchivo(
       exito: true,
       respuesta: response.data.answer,
       conversationId: response.data.conversation_id,
-      authWarning
+      authWarning,
+      supabaseImage
     }
 
   } catch (error) {

@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate:items": "node scripts/migrar_items.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

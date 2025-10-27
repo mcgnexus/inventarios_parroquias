@@ -83,6 +83,38 @@ export function getSupabaseBrowser() {
       },
     })
     console.log('[Auth] Cliente Supabase creado:', !!supabaseBrowser)
+
+    // Si el refresco de token falla (token inválido o ausente), forzar signOut y purgar artefactos locales
+    try {
+      const { data: { subscription } } = supabaseBrowser.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
+        if (event === 'SIGNED_OUT') {
+          console.warn('[Auth] SIGNED_OUT → purgando artefactos locales')
+          // Eliminar posibles tokens en localStorage y cookies (prefijo sb-)
+          try {
+            if (typeof window !== 'undefined') {
+              Object.keys(localStorage)
+                .filter((k) => k.startsWith('sb-'))
+                .forEach((k) => localStorage.removeItem(k))
+              // Purgar cookies con prefijo sb-
+              const cookies = document.cookie.split('; ')
+              cookies.forEach((cookie) => {
+                const name = cookie.split('=')[0]
+                if (name.startsWith('sb-')) {
+                  document.cookie = `${name}=; max-age=0; path=/`
+                }
+              })
+            }
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e)
+            console.warn('[Auth] Falló purga de artefactos locales:', msg)
+          }
+        }
+      })
+      // No necesitamos almacenar unsub globalmente en este contexto
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      console.warn('[Auth] No se pudo registrar onAuthStateChange:', msg)
+    }
   }
   return supabaseBrowser
 }
@@ -105,6 +137,24 @@ export async function signOut() {
   const sb = getSupabaseBrowser()
   if (!sb) return
   await sb.auth.signOut()
+  // Purga defensiva de artefactos locales para evitar estados inválidos persistentes
+  try {
+    if (typeof window !== 'undefined') {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith('sb-'))
+        .forEach((k) => localStorage.removeItem(k))
+      const cookies = document.cookie.split('; ')
+      cookies.forEach((cookie) => {
+        const name = cookie.split('=')[0]
+        if (name.startsWith('sb-')) {
+          document.cookie = `${name}=; max-age=0; path=/`
+        }
+      })
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    console.warn('[Auth] Falló purga de artefactos locales en signOut:', msg)
+  }
 }
 
 export async function getCurrentUser() {

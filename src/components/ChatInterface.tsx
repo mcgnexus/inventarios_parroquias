@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { enviarMensajeDify, enviarImagenDifyConInputArchivo, prepararImagen } from '@/lib/dify'
+import { enviarMensajeDify, enviarImagenDifyConInputArchivo, prepararImagen, type RespuestaDify } from '@/lib/dify'
 import { guardarConversacion, guardarCatalogacion, CatalogacionCompleta } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser, onAuthStateChange } from '@/lib/auth'
@@ -34,6 +34,8 @@ interface Mensaje {
   catalogacion?: CatalogacionIA
   mensajeId?: string
   imagenOriginal?: File
+  imagenSupabaseUrl?: string
+  imagenSupabasePath?: string
 }
 
 interface CatalogacionIA {
@@ -719,7 +721,7 @@ export default function ChatInterface() {
         }
       }
       
-      let respuesta: { exito: boolean; respuesta?: string; conversationId?: string; error?: string; authWarning?: boolean }
+      let respuesta: RespuestaDify
       if (imagenSeleccionada) {
         const mensajeSistema: Mensaje = {
           tipo: 'sistema',
@@ -740,6 +742,14 @@ export default function ChatInterface() {
         }
         
         respuesta = await enviarImagenDifyConInputArchivo(mensajeParaEnviar, imagenPreparada, userId)
+        // Si hubo subida a Supabase, guardamos url/path en el mensaje del usuario
+        if (respuesta?.supabaseImage) {
+          setConversacion(prev => prev.map(m => (
+            m.mensajeId === mensajeId
+              ? { ...m, imagenSupabaseUrl: respuesta.supabaseImage!.url, imagenSupabasePath: respuesta.supabaseImage!.path }
+              : m
+          )))
+        }
       } else {
         respuesta = await enviarMensajeDify(mensajeParaEnviar, userId)
       }
@@ -855,18 +865,35 @@ export default function ChatInterface() {
         return
       }
 
-      // Buscar el mensaje relacionado (usuario o IA) que contenga la imagen original
+      // Buscar el mensaje relacionado (usuario o IA) que contenga la imagen
       const mensajeConImagen = conversacion.find(m => (
         m.mensajeId === mensajeId || m.mensajeId === mensajeId?.replace('ia-', '')
       ))
-      if (!mensajeConImagen?.imagenOriginal) {
+      if (!mensajeConImagen) {
+        setGuardando(false)
+        setConversacion(prev => [...prev, { tipo: 'sistema', texto: 'No se encontró el mensaje asociado a la imagen.', timestamp: new Date() }])
+        return
+      }
+
+      const catalogoCompleto: CatalogacionCompleta = { user_id: user.id, ...cat }
+
+      // Si ya tenemos url/path de Supabase del análisis inicial, reutilizarlos para evitar re-subida
+      if (mensajeConImagen.imagenSupabaseUrl && mensajeConImagen.imagenSupabasePath) {
+        catalogoCompleto.image_url = mensajeConImagen.imagenSupabaseUrl
+        catalogoCompleto.image_path = mensajeConImagen.imagenSupabasePath
+      }
+
+      // Determinar si necesitamos subir archivo: solo si NO tenemos url/path guardados
+      const necesitaArchivo = !(catalogoCompleto.image_url && catalogoCompleto.image_path)
+      const imagenFileParaGuardar = necesitaArchivo ? (mensajeConImagen.imagenOriginal ?? null) : null
+
+      if (necesitaArchivo && !imagenFileParaGuardar) {
         setGuardando(false)
         setConversacion(prev => [...prev, { tipo: 'sistema', texto: 'Debes adjuntar una fotografía para aprobar la ficha.', timestamp: new Date() }])
         return
       }
 
-      const catalogoCompleto: CatalogacionCompleta = { user_id: user.id, ...cat }
-      const res = await guardarCatalogacion(user.id, catalogoCompleto, mensajeConImagen.imagenOriginal)
+      const res = await guardarCatalogacion(user.id, catalogoCompleto, imagenFileParaGuardar)
       if (!res) {
         setConversacion(prev => [...prev, { tipo: 'sistema', texto: 'Error al aprobar: respuesta vacía del servidor.', timestamp: new Date() }])
       } else if ('error' in res) {
