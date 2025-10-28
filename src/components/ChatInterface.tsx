@@ -424,7 +424,10 @@ const FichaInventario = React.memo(function FichaInventario({
   };
   return (
     <div className="mt-4 border border-slate-200 rounded-lg overflow-hidden">
-      <div className="bg-slate-50 p-3 flex justify-between items-center">
+      <div
+        className="sticky bg-slate-50/95 backdrop-blur-sm p-3 flex justify-between items-center border-b z-20 shadow-sm transition-all duration-200 ease-out lg:static"
+        style={{ top: 'env(safe-area-inset-top)' }}
+      >
         <h3 className="font-semibold text-slate-800">
           Ficha de Inventario: {cat.tipo_objeto}
         </h3>
@@ -563,6 +566,72 @@ const FichaInventario = React.memo(function FichaInventario({
           <CampoFicha etiqueta="Confianza del análisis" valor={datos.confianza_analisis} campo="confianza_analisis" editando={false} actualizarCampo={actualizarCampo} actualizarArray={actualizarArray} />
           <CampoFicha etiqueta="Observaciones" valor={datos.observaciones} campo="observaciones" editando={estaEditando} tipo="textarea" actualizarCampo={actualizarCampo} actualizarArray={actualizarArray} />
         </Seccion>
+      </div>
+
+      {/* Barra inferior duplicada de acciones: sticky, sombra y responsive con transición */}
+      <div
+        className="sticky bg-slate-50/95 backdrop-blur-sm p-3 flex justify-end items-center gap-2 border-t safe-area-bottom z-20 shadow-[0_-4px_8px_rgba(0,0,0,0.06)] transition-all duration-200 ease-out opacity-100 translate-y-0 md:opacity-100 md:translate-y-0 lg:opacity-0 lg:pointer-events-none lg:translate-y-2"
+        style={{ bottom: 'env(safe-area-inset-bottom)' }}
+      >
+        {!estaEditando ? (
+          <>
+            <button
+              onClick={() => iniciarEdicion(mensajeId || '', cat)}
+              className="p-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 flex items-center gap-1"
+            >
+              <Edit className="h-3.5 w-3.5" />
+              <span className="text-xs">Editar</span>
+            </button>
+            
+            <button
+              onClick={() => aprobarCatalogacion(cat, mensajeId)}
+              disabled={guardando || !imagenOriginal}
+              title={!imagenOriginal ? 'Adjunta una fotografía para aprobar' : undefined}
+              className="p-1.5 bg-emerald-100 text-emerald-800 rounded hover:bg-emerald-200 flex items-center gap-1 disabled:opacity-50"
+            >
+              {guardando ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ShieldCheck className="h-3.5 w-3.5" />
+              )}
+              <span className="text-xs">Aprobar</span>
+            </button>
+
+            <button
+              onClick={exportarPDF}
+              className="p-1.5 bg-slate-100 text-slate-700 rounded hover:bg-slate-200 flex items-center gap-1"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              <span className="text-xs">Exportar PDF</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => guardarEdicion(mensajeId || '')}
+              className="p-1.5 bg-emerald-100 text-emerald-800 rounded hover:bg-emerald-200 flex items-center gap-1"
+            >
+              <Save className="h-3.5 w-3.5" />
+              <span className="text-xs">Guardar</span>
+            </button>
+            
+            <button
+              onClick={cancelarEdicion}
+              className="p-1.5 bg-red-100 text-red-800 rounded hover:bg-red-200 flex items-center gap-1"
+            >
+              <X className="h-3.5 w-3.5" />
+              <span className="text-xs">Cancelar</span>
+            </button>
+
+            <button
+              onClick={exportarPDF}
+              className="p-1.5 bg-slate-100 text-slate-700 rounded hover:bg-slate-200 flex items-center gap-1"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              <span className="text-xs">Exportar PDF</span>
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
