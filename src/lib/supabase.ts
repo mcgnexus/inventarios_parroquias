@@ -228,9 +228,10 @@ export async function guardarCatalogacion(
     if (error) throw error
 
     return data && data.length > 0 ? { id: data[0].id } : null
-  } catch (e: any) {
-    console.error('Error en guardarCatalogacion:', e?.message || e)
-    return { error: e?.message || 'Error desconocido al guardar catalogación' }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    console.error('Error en guardarCatalogacion:', msg)
+    return { error: msg || 'Error desconocido al guardar catalogación' }
   }
 }
 
@@ -395,6 +396,19 @@ export async function obtenerCatalogoItem(id: string): Promise<CatalogoItem | nu
 // Lectura desde tabla items
 // ==========================
 
+type ItemRow = {
+  id: string
+  user_id: string
+  parish_id?: string
+  inventory_number?: string
+  status?: string
+  image_url?: string
+  data?: unknown
+  published_at?: string
+  approved_at?: string
+  created_at: string
+}
+
 async function obtenerCatalogoDesdeItems(userId?: string): Promise<CatalogoItem[] | null> {
   try {
     let query = supabase
@@ -404,36 +418,40 @@ async function obtenerCatalogoDesdeItems(userId?: string): Promise<CatalogoItem[
 
     if (userId) query = query.eq('user_id', userId)
 
-    const { data, error } = await query as unknown as { data: any[] | null, error: any }
+    const { data, error } = await query as unknown as { data: ItemRow[] | null, error: unknown }
     if (error) {
       // Si la tabla o columnas no existen aún, retornar null para fallback
-      console.warn('⚠️ No se pudo leer items (usando fallback a conversaciones):', error?.message || error)
+      const errMsg = error instanceof Error ? error.message : String(error)
+      console.warn('⚠️ No se pudo leer items (usando fallback a conversaciones):', errMsg)
       return null
     }
 
     const items: CatalogoItem[] = []
     for (const row of (data || [])) {
-      const parsed = (row as any).data || {}
+      const parsed = (row.data ?? {}) as Partial<CatalogacionCompleta>
       const hasImage = typeof row.image_url === 'string' && row.image_url.trim() !== ''
       const isApproved = Boolean(row.approved_at || row.status === 'approved')
       const isPublished = Boolean(row.published_at || row.status === 'published')
       const passesRule = (isApproved && hasImage) || (isPublished)
       if (passesRule && (parsed?.tipo_objeto || parsed?.name)) {
-        const merged: CatalogacionCompleta = {
+        const merged = {
           ...parsed,
+          user_id: row.user_id,
+          tipo_objeto: parsed.tipo_objeto ?? parsed.name ?? 'sin_especificar',
           parish_id: parsed.parish_id ?? row.parish_id,
           image_url: parsed.image_url ?? row.image_url,
           inventory_number: parsed.inventory_number ?? row.inventory_number,
           published_at: parsed.published_at ?? row.published_at,
           approved_at: parsed.approved_at ?? row.approved_at,
           status: parsed.status ?? row.status,
-        }
+        } as CatalogacionCompleta
         items.push({ id: row.id, user_id: row.user_id, fecha: row.created_at, data: merged })
       }
     }
     return items
-  } catch (e: any) {
-    console.warn('⚠️ Error inesperado leyendo items (fallback a conversaciones):', e?.message || e)
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    console.warn('⚠️ Error inesperado leyendo items (fallback a conversaciones):', msg)
     return null
   }
 }
@@ -444,31 +462,35 @@ async function obtenerCatalogoItemDesdeItems(id: string): Promise<CatalogoItem |
       .from('items')
       .select('id,user_id,parish_id,inventory_number,status,image_url,data,published_at,approved_at,created_at')
       .eq('id', id)
-      .limit(1) as unknown as { data: any[] | null, error: any }
+      .limit(1) as unknown as { data: ItemRow[] | null, error: unknown }
     if (error) {
-      console.warn('⚠️ No se pudo leer item desde items (fallback a conversaciones):', error?.message || error)
+      const errMsg = error instanceof Error ? error.message : String(error)
+      console.warn('⚠️ No se pudo leer item desde items (fallback a conversaciones):', errMsg)
       return null
     }
     const row = data?.[0]
     if (!row) return null
-    const parsed = (row as any).data || {}
+    const parsed = (row.data ?? {}) as Partial<CatalogacionCompleta>
     const hasImage = typeof row.image_url === 'string' && row.image_url.trim() !== ''
     const isApproved = Boolean(row.approved_at || row.status === 'approved')
     const isPublished = Boolean(row.published_at || row.status === 'published')
     const passesRule = (isApproved && hasImage) || (isPublished)
     if (!passesRule) return null
-    const merged: CatalogacionCompleta = {
+    const merged = {
       ...parsed,
+      user_id: row.user_id,
+      tipo_objeto: parsed.tipo_objeto ?? parsed.name ?? 'sin_especificar',
       parish_id: parsed.parish_id ?? row.parish_id,
       image_url: parsed.image_url ?? row.image_url,
       inventory_number: parsed.inventory_number ?? row.inventory_number,
       published_at: parsed.published_at ?? row.published_at,
       approved_at: parsed.approved_at ?? row.approved_at,
       status: parsed.status ?? row.status,
-    }
+    } as CatalogacionCompleta
     return { id: row.id, user_id: row.user_id, fecha: row.created_at, data: merged }
-  } catch (e: any) {
-    console.warn('⚠️ Error inesperado leyendo item desde items (fallback a conversaciones):', e?.message || e)
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    console.warn('⚠️ Error inesperado leyendo item desde items (fallback a conversaciones):', msg)
     return null
   }
 }

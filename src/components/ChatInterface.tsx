@@ -570,8 +570,8 @@ const FichaInventario = React.memo(function FichaInventario({
 
       {/* Barra inferior duplicada de acciones: fixed para móviles/tablet, sombra y responsive con transición */}
       <div
-        className="fixed inset-x-0 z-30 bg-slate-50/95 backdrop-blur-sm border-t shadow-[0_-4px_8px_rgba(0,0,0,0.06)] transition-all duration-200 ease-out opacity-100 translate-y-0 md:opacity-100 md:translate-y-0 lg:opacity-0 lg:pointer-events-none lg:translate-y-2"
-        style={{ bottom: 'env(safe-area-inset-bottom)' }}
+        className="fixed inset-x-0 z-30 bg-slate-50/95 backdrop-blur-sm border-t shadow-[0_-4px_8px_rgba(0,0,0,0.06)] transition-all duration-200 ease-out opacity-100 translate-y-0 md:opacity-100 md:translate-y-0 xl:opacity-0 xl:pointer-events-none xl:translate-y-2"
+        style={{ bottom: 0, paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="mx-auto max-w-6xl px-4 py-3 flex justify-end items-center gap-2">
           {!estaEditando ? (
