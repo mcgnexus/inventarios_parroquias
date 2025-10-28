@@ -243,6 +243,14 @@ textarea:focus-visible {
   }
 }
 
+/* Utilidades de safe-area para iOS y móviles con notch */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 /* Print styles para exportación */
 /* Estilos de impresión A4 */
 @media print {

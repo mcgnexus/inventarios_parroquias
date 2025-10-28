@@ -128,7 +128,7 @@ export default function FullscreenImage({ src, alt, images, startIndex = 0, imgC
            role="dialog"
            aria-modal="true"
            className="fixed inset-0 z-50 bg-slate-900/80"
-           style={{ overscrollBehavior: 'contain' }}
+           style={{ overscrollBehavior: 'contain', paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
            onClick={close}
          >
            <div className="absolute top-4 right-4 flex items-center gap-2">

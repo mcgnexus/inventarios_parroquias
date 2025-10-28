@@ -80,7 +80,7 @@ export default function CatalogNavigation({ currentId, allItems, queryString = '
       </div>
       
       {/* Indicador de navegación con teclado */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 pointer-events-auto">
+      <div className="absolute left-1/2 transform -translate-x-1/2 pointer-events-auto" style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
         <div className="bg-black/70 text-white text-xs px-3 py-1 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-300">
           Usa ← → para navegar
         </div>

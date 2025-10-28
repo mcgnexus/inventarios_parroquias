@@ -95,7 +95,7 @@ const Seccion = React.memo(function Seccion({
       </div>
       
       {visible && (
-        <div className="bg-white p-3 rounded-b-md border border-slate-200 grid grid-cols-2 gap-4">
+        <div className="bg-white p-3 rounded-b-md border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {children}
         </div>
       )}
@@ -914,11 +914,11 @@ export default function ChatInterface() {
 
 
   return (
-    <div className="flex flex-col h-screen max-w-6xl mx-auto bg-stone-100 rounded-xl shadow-2xl overflow-hidden border border-slate-300">
+    <div className="flex flex-col min-h-[100dvh] max-w-6xl mx-auto bg-stone-100 rounded-xl shadow-2xl overflow-hidden border border-slate-300">
       
       {/* ENCABEZADO */}
       <div className="bg-slate-800 text-white p-4 border-b-4 border-amber-600">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div>
             <div className="flex items-center gap-3">
               <Database className="h-7 w-7 text-amber-500" />
@@ -968,7 +968,7 @@ export default function ChatInterface() {
                 que podrá revisar, editar y guardar en la base de datos.
               </p>
               
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mt-4">
                 {CATEGORIAS_RAPIDAS.map((cat, idx) => (
                   <div
                     key={idx}

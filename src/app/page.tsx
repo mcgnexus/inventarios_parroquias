@@ -30,10 +30,10 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-10 px-4">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-8 sm:py-10 px-3 sm:px-4">
       <div className="container mx-auto max-w-5xl">
         <header className="text-center mb-10">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">FidesDigital</h1>
+          <h1 className="text-3xl sm:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2 sm:mb-3">FidesDigital</h1>
           <p className="text-slate-600">Inventario patrimonial asistido por IA</p>
           {userEmail && (
             <p className="mt-2 text-sm text-slate-500">Sesión: {userEmail}</p>
