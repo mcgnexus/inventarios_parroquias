@@ -64,15 +64,31 @@ export default function EditableCatalogForm({ id, initialData, onSaveSuccess }: 
   const [confianza, setConfianza] = useState<string>(initialData?.confianza_analisis || '')
   const [inventoryNumber, setInventoryNumber] = useState<string>(initialData?.inventory_number || '')
 
-  // Normalizar estado inicial si coincide con categorías conocidas
+  // Sincronizar estados cuando initialData esté disponible o cambie
   useEffect(() => {
+    setName(initialData?.name || initialData?.descripcion_breve || '')
+    setAuthor(initialData?.author || initialData?.autor || '')
+    setLocation(initialData?.location || initialData?.localizacion_actual || '')
+    setDescripcionDetallada(initialData?.descripcion_detallada || '')
+    setObservaciones(initialData?.observaciones || '')
+    setTipoObjeto(initialData?.tipo_objeto || '')
     const c = (initialData?.categoria || '') as string
     const lower = c.toLowerCase()
-    if (CATEGORY_LOWER.includes(lower)) {
-      setCategoria(lower)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    setCategoria(CATEGORY_LOWER.includes(lower) ? lower : c)
+    setDatacion(initialData?.datacion_aproximada || '')
+    setSiglos(initialData?.siglos_estimados || '')
+    setEstilo(initialData?.estilo_artistico || '')
+    setIconografia(initialData?.iconografia || '')
+    setMaterialesText((initialData?.materiales || []).join(', '))
+    setTecnicasText((initialData?.tecnicas || []).join(', '))
+    setDimensiones(initialData?.dimensiones_estimadas || '')
+    setEstado(initialData?.estado_conservacion || '')
+    setDeteriorosText((initialData?.deterioros_visibles || []).join(', '))
+    setValorArtistico(initialData?.valor_artistico || '')
+    setConfianza(initialData?.confianza_analisis || '')
+    setInventoryNumber(initialData?.inventory_number || '')
+    setPublishedAt(initialData?.published_at || getCurrentDate())
+  }, [initialData])
 
   // Establecer fecha actual por defecto si no hay fecha inicial
   const getCurrentDate = () => {
