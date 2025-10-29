@@ -67,7 +67,14 @@ export default async function CatalogoPage({ searchParams }: { searchParams: Pro
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
       <div className="flex items-center gap-3 mb-4">
-        <img src="/guadix.svg" alt="Escudo Guadix" className="h-12 w-auto logo-escudo" />
+        <Image
+          src="/guadix.svg"
+          alt="Diócesis de Guadix"
+          width={48}
+          height={48}
+          priority
+          className="h-12 w-12 logo-escudo"
+        />
         <div className="text-sm text-slate-600">Diócesis de Guadix — Catálogo</div>
       </div>
       <div className="flex items-baseline justify-between mb-6">

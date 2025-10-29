@@ -37,7 +37,7 @@ export default function ExportPDFButton({ data }: Props) {
         }
         const fullName = profileData && profileData[0]?.full_name
         if (mounted) setCatalogadoPor(fullName || fallback)
-      } catch (e) {
+      } catch {
         if (mounted) setCatalogadoPor('—')
       }
     })()
@@ -68,7 +68,7 @@ export default function ExportPDFButton({ data }: Props) {
     const safe = (v?: string) => (v && String(v).trim()) || '—'
     const materiales = (data?.materiales || []).join(', ')
     const tecnicas = (data?.tecnicas || []).join(', ')
-    const deterioros = (data?.deterioros_visibles || []).join(', ')
+    
 
     const html = `
       <!doctype html>

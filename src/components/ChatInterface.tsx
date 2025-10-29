@@ -972,8 +972,9 @@ export default function ChatInterface() {
       } else {
         setConversacion(prev => [...prev, { tipo: 'sistema', texto: 'Ficha aprobada correctamente.', timestamp: new Date() }])
       }
-    } catch (e: any) {
-      setConversacion(prev => [...prev, { tipo: 'sistema', texto: `Error inesperado al aprobar: ${e?.message || e}`, timestamp: new Date() }])
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e)
+      setConversacion(prev => [...prev, { tipo: 'sistema', texto: `Error inesperado al aprobar: ${msg}`, timestamp: new Date() }])
     } finally {
       setGuardando(false)
     }

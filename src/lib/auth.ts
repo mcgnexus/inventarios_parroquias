@@ -86,7 +86,7 @@ export function getSupabaseBrowser() {
 
     // Si el refresco de token falla (token inválido o ausente), forzar signOut y purgar artefactos locales
     try {
-      const { data: { subscription } } = supabaseBrowser.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
+      supabaseBrowser.auth.onAuthStateChange(async (event: AuthChangeEvent) => {
         if (event === 'SIGNED_OUT') {
           console.warn('[Auth] SIGNED_OUT → purgando artefactos locales')
           // Eliminar posibles tokens en localStorage y cookies (prefijo sb-)
