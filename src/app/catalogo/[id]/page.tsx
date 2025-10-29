@@ -127,8 +127,11 @@ const nextItem = currentIndexFiltered >= 0 && currentIndexFiltered < filtrados.l
 
       <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 mb-6 print-card">
         <div className="flex items-center gap-3 mb-4">
-          <img src="/escudo-guadix.jpg" alt="Escudo Guadix" className="h-12 w-auto logo-escudo" />
-          <div className="text-sm text-slate-600">Diócesis de Guadix — Inventario</div>
+          <img src="/guadix.svg" alt="Diócesis de Guadix" className="h-12 w-auto logo-escudo" />
+          <div className="leading-tight">
+            <div className="text-sm font-semibold text-slate-800">FICHA DE INVENTARIO DE BIENES MUEBLES</div>
+            <div className="text-xs text-slate-600">{parishName || '—'}</div>
+          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div>

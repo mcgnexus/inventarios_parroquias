@@ -4,6 +4,13 @@ export const supabase = getSupabaseBrowser()
 
 // Removed unused interface Conversacion to satisfy no-unused-vars
 
+export interface CatalogImage {
+  url: string
+  path: string
+  alt?: string
+  order?: number
+}
+
 export interface CatalogacionCompleta {
   parish_id?: string
   parish_name?: string
@@ -29,6 +36,7 @@ export interface CatalogacionCompleta {
   location?: string
   image_url?: string
   image_path?: string
+  images?: CatalogImage[]
   // compatibilidad con campos opcionales
   name?: string
   author?: string

@@ -1,7 +1,8 @@
 "use client"
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { GUADIX_PARISHES } from '@/data/guadixParishes'
+import type { CatalogImage } from '@/lib/supabase'
 
 // Definición de opciones visibles y valores internos
 const CATEGORY_OPTIONS = ['Pintura','Escultura','Talla','Orfebreria','Ornamentos','Telas','Mobiliario','Documentos','Otros']
@@ -34,7 +35,10 @@ export type CatalogInitialData = Partial<{
    published_at: string
    parish_id: string
    parish_name: string
- }>
+   image_url: string
+   image_path: string
+   images: CatalogImage[]
+}>
 
  interface Props {
    id: string
@@ -108,6 +112,11 @@ export default function EditableCatalogForm({ id, initialData, onSaveSuccess }: 
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string>("")
   const [confirming, setConfirming] = useState(false)
+  // Imágenes múltiples (selección local antes de subir)
+  const [imageFiles, setImageFiles] = useState<File[]>([])
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  const [coverIndex, setCoverIndex] = useState<number | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
   // Utilidad para detectar UUID
   const isUuid = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str)
 
@@ -187,6 +196,34 @@ export default function EditableCatalogForm({ id, initialData, onSaveSuccess }: 
       // Normalizar categoría para compatibilidad si es conocida
       const categoriaToSave = categoria ? (CATEGORY_LOWER.includes(categoria.toLowerCase()) ? categoria.toLowerCase() : categoria) : ''
 
+      // Subida de imágenes nuevas (si se han seleccionado)
+      let uploadedImages: CatalogImage[] = []
+      if (imageFiles.length > 0) {
+        for (const f of imageFiles) {
+          const fd = new FormData()
+          fd.append('file', f)
+          const upRes = await fetch('/api/upload', { method: 'POST', body: fd })
+          const upJson = await upRes.json().catch(() => null)
+          if (upRes.ok && upJson?.url && upJson?.path) {
+            uploadedImages.push({ url: String(upJson.url), path: String(upJson.path) })
+          } else {
+            throw new Error(upJson?.error || 'Error subiendo imagen')
+          }
+        }
+      }
+
+      const existingImages: CatalogImage[] = Array.isArray(initialData?.images) ? (initialData!.images) : []
+      const mergedImages = existingImages.concat(uploadedImages)
+
+      // Portada: si se han subido nuevas, usar selección; si no, mantener existente
+      let image_url = initialData?.image_url || ''
+      let image_path = initialData?.image_path || ''
+      if (uploadedImages.length > 0) {
+        const idx = typeof coverIndex === 'number' && coverIndex >= 0 && coverIndex < uploadedImages.length ? coverIndex : 0
+        image_url = uploadedImages[idx].url
+        image_path = uploadedImages[idx].path
+      }
+
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -214,6 +251,8 @@ export default function EditableCatalogForm({ id, initialData, onSaveSuccess }: 
             inventory_number: inventoryNumber,
             published_at: publishedAt,
             parish_input,
+            ...(mergedImages.length > 0 ? { images: mergedImages } : {}),
+            ...(uploadedImages.length > 0 ? { image_url, image_path } : {}),
           },
         }),
       })
@@ -413,6 +452,58 @@ export default function EditableCatalogForm({ id, initialData, onSaveSuccess }: 
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
             />
           </div>
+        </div>
+        {/* Imágenes múltiples */}
+        <div className="mt-6">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-semibold text-slate-600">Imágenes</label>
+            <div className="flex items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || [])
+                  if (files.length === 0) return
+                  setImageFiles(prev => [...prev, ...files])
+                  const previews = files.map(f => URL.createObjectURL(f))
+                  setImagePreviews(prev => [...prev, ...previews])
+                  if (coverIndex === null) setCoverIndex(0)
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-3 py-1.5 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-sm"
+              >Añadir imágenes</button>
+            </div>
+          </div>
+          {imagePreviews.length > 0 && (
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {imagePreviews.map((src, idx) => (
+                <div key={idx} className="relative border border-slate-200 rounded-md p-2 bg-slate-50">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt={`Imagen ${idx + 1}`} className="w-full h-24 object-cover rounded" />
+                  <div className="mt-2 flex items-center justify-between">
+                    <label className="text-xs text-slate-700 inline-flex items-center gap-1">
+                      <input type="radio" name="cover" checked={coverIndex === idx} onChange={() => setCoverIndex(idx)} /> Portada
+                    </label>
+                    <button
+                      type="button"
+                      className="text-xs text-red-600 hover:text-red-700"
+                      onClick={() => {
+                        setImageFiles(prev => prev.filter((_, i) => i !== idx))
+                        setImagePreviews(prev => prev.filter((_, i) => i !== idx))
+                        if (coverIndex === idx) setCoverIndex(null)
+                      }}
+                    >Quitar</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <div className="mt-4 flex items-center gap-3">
           {!confirming ? (

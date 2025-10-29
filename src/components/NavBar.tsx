@@ -7,6 +7,10 @@ export default function NavBar() {
   return (
     <div className="w-full bg-slate-50 border-b border-slate-200 no-print safe-area-top">
       <div className="max-w-6xl mx-auto px-4 py-2 flex flex-wrap items-center gap-3">
+        <Link href="/" className="inline-flex items-center gap-2 mr-2" aria-label="Inicio">
+          <img src="/guadix.svg" alt="Diócesis de Guadix" className="h-8 w-auto" />
+          <span className="text-slate-700 font-medium hidden sm:inline">Diócesis de Guadix</span>
+        </Link>
         <button
           type="button"
           onClick={() => router.back()}
