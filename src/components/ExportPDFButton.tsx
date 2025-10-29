@@ -18,7 +18,8 @@ export default function ExportPDFButton({ data }: Props) {
           if (mounted) setCatalogadoPor('—')
           return
         }
-        const metaName = (user.user_metadata as any)?.full_name
+        const metaObj = user.user_metadata as Record<string, unknown>
+        const metaName = typeof metaObj['full_name'] === 'string' ? (metaObj['full_name'] as string) : undefined
         const fallback = metaName || user.email || '—'
         const sb = getSupabaseBrowser()
         if (!sb) {

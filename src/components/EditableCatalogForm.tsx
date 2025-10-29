@@ -197,7 +197,7 @@ export default function EditableCatalogForm({ id, initialData, onSaveSuccess }: 
       const categoriaToSave = categoria ? (CATEGORY_LOWER.includes(categoria.toLowerCase()) ? categoria.toLowerCase() : categoria) : ''
 
       // Subida de imágenes nuevas (si se han seleccionado)
-      let uploadedImages: CatalogImage[] = []
+      const uploadedImages: CatalogImage[] = []
       if (imageFiles.length > 0) {
         for (const f of imageFiles) {
           const fd = new FormData()
